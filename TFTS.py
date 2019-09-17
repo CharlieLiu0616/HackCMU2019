@@ -26,7 +26,7 @@ def predict(csv_name, endDate):
     endDate += 2
     endDate += one_year
     ##Manipulating data into dataset
-    dataframe = pandas.read_csv(os.path.join("CSVs",csv_name), usecols=[1], engine='python')
+    dataframe = pandas.read_csv(os.path.join(csv_name), usecols=[1], engine='python')
     dataset = dataframe.values
     dataset = dataset.astype('float32')
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -34,14 +34,14 @@ def predict(csv_name, endDate):
     
     ##Adjusting the training set and testing set
     train_size = endDate
-    test_size = 4
-    train, test = dataset[0:train_size,:], dataset[train_size-2:train_size+test_size-2,:]
+    test_size = 5
+    train, test = dataset[0:train_size,:], dataset[train_size-2:,:]
     
     look_back = 1
     
     trainX, trainY = create_dataset(train, look_back)
     testX, testY = create_dataset(test, look_back)
-    
+    print(testX)
     
     
     # reshape input to be [samples, time steps, features]
@@ -68,22 +68,18 @@ def predict(csv_name, endDate):
     testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
     print('Test Score: %.2f RMSE' % (testScore))
     
-    # trainPredictPlot = numpy.empty_like(dataset)
-    # trainPredictPlot[:, :] = numpy.nan
-    # trainPredictPlot[look_back-1:len(trainPredict)+look_back-1, :] = trainPredict
-    # shift test predictions for plotting
-    # testPredictPlot = numpy.empty_like(dataset)
-    # testPredictPlot[:, :] = numpy.nan
+    trainPredictPlot = numpy.empty_like(dataset)
+    trainPredictPlot[:, :] = numpy.nan
+    trainPredictPlot[look_back-1:len(trainPredict)+look_back-1, :] = trainPredict
+    testPredictPlot = numpy.empty_like(dataset)
+    testPredictPlot[:, :] = numpy.nan
     print("Test predict", testPredict)
     
-    # testPredictPlot[len(trainPredict):len(trainPredict) + len(testPredict), :] = testPredict
-    # plot baseline and predictions
-    # plt.plot(scaler.inverse_transform(dataset[0:len(trainPredict)+len(testPredict)]))
-    # plt.plot(trainPredictPlot)
-    # plt.plot(testPredictPlot)
-    print("Actual", scaler.inverse_transform(dataset[len(trainPredict)-1:len(trainPredict)+len(testPredict)]))
-    print("Last day on train", trainPredict[-1])
-    # plt.show()
+    testPredictPlot[len(trainPredict):len(trainPredict) + len(testPredict), :] = testPredict
+    plt.plot(scaler.inverse_transform(dataset[0:len(trainPredict)+len(testPredict)]))
+    plt.plot(trainPredictPlot)
+    plt.plot(testPredictPlot)
+    plt.show()
     return testPredict[0] - trainPredict[-1]
 
 def compileCSV(csv_file):
@@ -100,17 +96,5 @@ def compileCSV(csv_file):
         csvwriter.writerow(fields) 
         # writing the data rows 
         csvwriter.writerows(rows)
-    
-def wrapper():
-    compileCSV("msft.csv")
-    compileCSV('FLEX.csv')
-    compileCSV('BBBY.csv')
-    compileCSV('ACAD.csv')
-    compileCSV('CTAS.csv')
-    compileCSV('CSGS.csv')
-    compileCSV('CSCO.csv')
-    compileCSV('DXLG.csv')
-    compileCSV('ACHC.csv')
-    compileCSV('ABCB.csv')
-
-wrapper()
+#Want more data to be training data? change the second argument to a larger value
+predict("BBBY.csv",10)
